@@ -1,21 +1,21 @@
-/*
- * Display the cards on the page
- *   - shuffle the list of cards using the provided "shuffle" method below
- *   - loop through each card and create its HTML
- *   - add each card's HTML to the page
- */
+//////////////////////////////////////////////////////////////////////////
+// initialization
+//////////////////////////////////////////////////////////////////////////
 
 //  constants
 const CARD_SYMBOLS = ["anchor", "bicycle", "bolt", "bomb", "cube", "diamond", "leaf", "paper-plane-o"];
+const STAR_FACTOR = 15;	// number of moves it takes to lower star rating
 
 // variables
-let allSymbols = [];	// array of 16 symbols (8 pairs), shuffled
-let allCards = [];		// array of 16 card nodes
-let openCards = [];		// array of the currently open cards
-let lockedCards = [];	// array of the cards that have been matched
-let moveCount = 0;		// number of moves
+let allSymbols = [];		// array of 16 symbols (8 pairs), shuffled
+let allCards = [];			// array of 16 card nodes
+let openCards = [];			// array of the currently open cards
+let lockedCards = [];		// array of the cards that have been matched
+let moveCount = 0;			// number of moves
+let gameTimer = null;		// elapsed time timer
+let startTime = null;		// time that this game started
 
-// start a new game
+// set up shuffled deck of cards and start a new game
 initializeAllSymbols();
 restartGame();
 
@@ -45,16 +45,24 @@ function handleCardClick(event) {
 			return;
 		}
 
+		// if this is the first card clicked on, start game timer
+		if (startTime == null) {
+			startGameTimer();
+		}
+
 		// add this card to the list of open cards
 		addToOpenCardList(card);
 
 		// if there are two open cards...
 		if (openCards.length == 2) {
 
-			// if they match (i.e. they have the same icon name)...
+			// count one move
+			incrementMoveCount();
+
+			// if the cards match (i.e. they have the same icon name)...
 			if (openCardsMatch()) {
 
-				// then lock the matched cards in the open position
+				// then lock the matched cards
 				lockOpenCards();
 			}
 
@@ -64,9 +72,6 @@ function handleCardClick(event) {
 				// remove the cards from the open cards array
 				closeOpenCards();
 			}
-
-			// picking a pair counts as one move
-			incrementMoveCount();
 		}
 
 		// if all cards have matched, end the game
@@ -143,6 +148,7 @@ function closeOpenCards() {
 
 function incrementMoveCount() {
 	moveCount++;
+	updateScorePanel();
 }
 
 function endGame() {
@@ -177,6 +183,8 @@ function setCardIconHtml() {
 // restart the game: shuffle the deck and reset the cards' icon HTML
 function restartGame() {
 	moveCount = 0;
+	gameTimer = null;
+	startTime = null;
 	openCards = [];
 	lockedCards = [];
 	allSymbols = shuffle(allSymbols);
@@ -206,8 +214,32 @@ function setDisplayClass(array, className) {
 }
 
 function updateScorePanel() {
+	// update move count
 	let moves = document.querySelector(".moves");
 	moves.textContent = moveCount.toString();
+
+	// update stars
+	const starContainer = document.querySelector('.stars');
+	const stars = starContainer.children;
+	const starCount = stars.length;
+	for (let i=0; i<starCount; i++) {
+		const star = stars[i];
+		const icon = star.querySelector("i");
+		icon.className = moveCount > STAR_FACTOR * (starCount - i) ?
+						 "fa fa-star-o" : "fa fa-star";
+	}
+
+	// update game timer
+	let timeStr = "0:00";
+	if (startTime != null) {
+		const msec = Date.now() - startTime;
+		let secs = Math.floor(msec/1000);
+		let mins = Math.floor(secs/60);
+		secs = secs % 60;
+		timeStr = mins + ":" + (secs < 10 ? "0" : "" ) + secs;
+	}
+	let time = document.querySelector(".time");
+	time.innerHTML = timeStr;
 }
 
 // update the display of cards
@@ -216,6 +248,12 @@ function updateDisplay() {
 	setDisplayClass(openCards,"open");
 	setDisplayClass(lockedCards,"locked");
 	updateScorePanel();
+}
+
+// start the elapsed time game timer
+function startGameTimer() {
+	startTime = Date.now();
+	timer = setInterval(updateScorePanel, 1000);
 }
 
 // Shuffle function from http://stackoverflow.com/a/2450976
