@@ -9,12 +9,12 @@
 const CARD_SYMBOLS = ["anchor", "bicycle", "bolt", "bomb", "cube", "diamond", "leaf", "paper-plane-o"];
 
 // variables
-let allSymbols = [];	// array of 16 shuffled symbols
-let allCards = [];		// array of 16 shuffled cards
+let allSymbols = [];	// array of 16 symbols (8 pairs), shuffled
+let allCards = [];		// array of 16 card nodes
 let openCards = [];		// array of the currently open cards
 let lockedCards = [];	// array of the cards that have been matched
 let moveCount = 0;		// number of moves
-let revealing = false;	// true when revealing a pair of cards to match
+
 // start a new game
 initializeAllSymbols();
 restartGame();
@@ -31,7 +31,7 @@ deck.addEventListener('click', handleCardClick);
 
 
 //////////////////////////////////////////////////////////////////////////
-// subroutines
+// functions
 //////////////////////////////////////////////////////////////////////////
 
 function handleCardClick(event) {
@@ -45,7 +45,7 @@ function handleCardClick(event) {
 			return;
 		}
 
-		// add this card to the list of open cards and display its symbol
+		// add this card to the list of open cards
 		addToOpenCardList(card);
 
 		// if there are two open cards...
@@ -61,17 +61,13 @@ function handleCardClick(event) {
 			// if they don't match...
 			else {
 
-				// remove the cards from the open cards array and hide their symbols
+				// remove the cards from the open cards array
 				closeOpenCards();
 			}
+
+			// picking a pair counts as one move
+			incrementMoveCount();
 		}
-
-		// count one move
-		incrementMoveCount();
-
-		// update display to show the appropriate cards
-		updateDisplay();
-
 
 		// if all cards have matched, end the game
 		if (lockedCards.length == allCards.length)
@@ -101,9 +97,10 @@ function cardIsOpen(card) {
 	return false;
 }
 
-// add this card to the list of open cards
+// add this card to the list of open cards, show it
 function addToOpenCardList(card) {
 	openCards.push(card);
+	updateDisplay();
 }
 
 // return true if the two cards in openCards have the same symbol
@@ -129,15 +126,19 @@ function openCardsMatch() {
 // move open cards to the locked cards list
 function lockOpenCards() {
 	while (openCards.length > 0) {
-		value = openCards.pop();
-		lockedCards.push(value);
+		let card = openCards.pop();
+		card.classList.add("match");
+		lockedCards.push(card);
 	}
+	setTimeout(updateDisplay, 1500);	// delay a bit before locking matched cards
 }
 
 function closeOpenCards() {
 	while (openCards.length > 0) {
-		openCards.pop();
+		let card = openCards.pop();
+		card.classList.add("mismatch");
 	}
+	setTimeout(updateDisplay, 1500);	// delay a bit before hiding mismatched cards
 }
 
 function incrementMoveCount() {
@@ -151,7 +152,7 @@ function endGame() {
 // 	initialize the array of symbols
 function initializeAllSymbols() {
 	for (let i=0; i<CARD_SYMBOLS.length; i++) {
-		allSymbols[2*i] = CARD_SYMBOLS[i];			// we use each name twice to make pairs
+		allSymbols[2*i] = CARD_SYMBOLS[i];		// use each name twice to make pairs
 		allSymbols[2*i+1] = CARD_SYMBOLS[i];
 	}
 }
@@ -183,27 +184,38 @@ function restartGame() {
 	updateDisplay();
 }
 
-// update the display of cards
-function updateDisplay() {
-	// loop through all cards in our shuffled array, add appropriate classes
+function clearDisplayClasses() {
+	// loop through all cards in our shuffled array, clear all display classes
 	for (let i=0; i<allCards.length; i++) {
 		const card = allCards[i];
 		const classList = card.classList;
-
-		if (cardIsOpen(card)) {
-			classList.add("open");
-			classList.add("show");
-		} else {
-			classList.remove("open");
-			classList.remove("show");
-		}
-
-		if (cardIsLocked(card)) {
-			classList.add("match");
-		} else {
-			classList.remove("match");
-		}
+		classList.remove("open");
+		classList.remove("locked");
+		classList.remove("match");
+		classList.remove("mismatch");
 	}
+}
+
+function setDisplayClass(array, className) {
+	// loop through all cards in an array, set class
+	for (let i=0; i<array.length; i++) {
+		const card = array[i];
+		const classList = card.classList;
+		classList.add(className);
+	}
+}
+
+function updateScorePanel() {
+	let moves = document.querySelector(".moves");
+	moves.textContent = moveCount.toString();
+}
+
+// update the display of cards
+function updateDisplay() {
+	clearDisplayClasses();
+	setDisplayClass(openCards,"open");
+	setDisplayClass(lockedCards,"locked");
+	updateScorePanel();
 }
 
 // Shuffle function from http://stackoverflow.com/a/2450976
