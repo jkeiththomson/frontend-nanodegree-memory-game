@@ -3,8 +3,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 //  constants
-const CARD_SYMBOLS = ["anchor", "bicycle", "bolt", "bomb", "cube", "diamond", "leaf", "paper-plane-o"];
-const STAR_FACTOR = 2;	// number of moves it takes to lower star rating
+const CARD_SYMBOLS = ["anchor", "bicycle", "bolt", "bomb",
+	"cube", "diamond", "leaf", "paper-plane-o"];
+const STAR_FACTOR = 12;	// number of moves it takes to lower star rating
 
 // variables
 let allSymbols = [];		// array of 16 symbols (8 pairs), shuffled
@@ -12,9 +13,8 @@ let allCards = [];			// array of 16 card nodes
 let openCards = [];			// array of the currently open cards
 let lockedCards = [];		// array of the cards that have been matched
 let moveCount = 0;			// number of moves
-let gameTimer = null;		// elapsed time timer
+let gameTimer = null;		// elapsed time timer ID
 let startTime = null;		// time that this game started
-let timeString = "";		// elapsed time
 
 // set up shuffled deck of cards and start a new game
 initializeAllSymbols();
@@ -41,7 +41,7 @@ function handleCardClick(event) {
 
 	// if the user clicked on a card...
 	let card = event.target;
-	if (card.nodeName === "I") {
+	if (card.nodeName === "I") {	// if they clicked an icon, get parent
 		card = card.parentElement;
 	}
 
@@ -60,7 +60,7 @@ function handleCardClick(event) {
 		// add this card to the list of open cards
 		addToOpenCardList(card);
 
-		// if there are two open cards...
+		// if there are exactly two open cards...
 		if (openCards.length == 2) {
 
 			// count one move
@@ -81,10 +81,8 @@ function handleCardClick(event) {
 			}
 		}
 
-
 		// if all cards have matched, end the game
-		// if (lockedCards.length == allCards.length)
-		if (moveCount == 8)
+		if (lockedCards.length == allCards.length)
 		{
 			endGame();
 		}
@@ -148,6 +146,7 @@ function lockOpenCards() {
 	window.setTimeout(updateDisplay, 1500);
 }
 
+// remove open cards from the open cards list
 function closeOpenCards() {
 	while (openCards.length > 0) {
 		let card = openCards.pop();
@@ -157,16 +156,25 @@ function closeOpenCards() {
 	window.setTimeout(updateDisplay, 1500);
 }
 
+// count one move, i.e. one pair of cards was urned over
 function incrementMoveCount() {
 	moveCount++;
 	updateScorePanel();
 }
 
+// end the game
 function endGame() {
+	// kill the elapsed time timer
 	window.clearInterval(gameTimer);
+
+	// update the final scores
 	updateScorePanel();
-	const container = document.querySelector(".modal-container");
-	container.classList.add("show");
+
+	// wait a bit, then show end-of-game modal
+	window.setTimeout(function() {
+		const container = document.querySelector(".modal-container");
+		container.classList.add("show");
+	}, 2000);
 }
 
 // 	initialize the array of symbols
@@ -194,22 +202,27 @@ function setCardIconHtml() {
 	}
 }
 
-// restart the game: shuffle the deck and reset the cards' icon HTML
+// start a new game
 function restartGame() {
+	// hide the end-of-game modal
 	const container = document.querySelector(".modal-container");
 	container.classList.remove("show");
+
+	// initialize variables
 	moveCount = 0;
 	gameTimer = null;
 	startTime = null;
 	openCards = [];
 	lockedCards = [];
+
+	// shuffle the cards
 	allSymbols = shuffle(allSymbols);
 	setCardIconHtml();
 	updateDisplay();
 }
 
+// clear all display classes in array of cards
 function clearDisplayClasses() {
-	// loop through all cards in our shuffled array, clear all display classes
 	for (let i=0; i<allCards.length; i++) {
 		const card = allCards[i];
 		const classList = card.classList;
@@ -220,8 +233,8 @@ function clearDisplayClasses() {
 	}
 }
 
+// set display classes of cards in an array
 function setDisplayClass(array, className) {
-	// loop through all cards in an array, set class
 	for (let i=0; i<array.length; i++) {
 		const card = array[i];
 		const classList = card.classList;
@@ -294,14 +307,3 @@ function shuffle(array) {
 
     return array;
 }
-
-/*
- * set up the event listener for a card. If a card is clicked:
- *  - display the card's symbol (put this functionality in another function that you call from this one)
- *  - add the card to a *list* of "open" cards (put this functionality in another function that you call from this one)
- *  - if the list already has another card, check to see if the two cards match
- *    + if the cards do match, lock the cards in the open position (put this functionality in another function that you call from this one)
- *    + if the cards do not match, remove the cards from the list and hide the card's symbol (put this functionality in another function that you call from this one)
- *    + increment the move counter and display it on the page (put this functionality in another function that you call from this one)
- *    + if all cards have matched, display a message with the final score (put this functionality in another function that you call from this one)
- */
