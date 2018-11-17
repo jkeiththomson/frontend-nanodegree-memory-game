@@ -55,8 +55,8 @@ h1 {
     height: 125px;
     width: 125px;
     background: #d4d2d2;
-    font-size: 0;
-    color: #ffffff;
+    font-size: 60px;
+    color: rgba(255, 255, 255, 0);
     border-radius: 8px;
     cursor: pointer;
     display: flex;
@@ -65,33 +65,33 @@ h1 {
     box-shadow: 5px 2px 20px 0 rgba(22, 22, 22, 0.6);
     transform: rotateY(0);
     transition:
-        transform 0.5s 0s,
-        font-size 0.5s 0s,
+        transform 0.5s 0.0s,
         background 0.2s 0.2s,
-        box-shadow .5s 0s;
+        box-shadow 0.5s 0.0s,
+        color 0.2s 0.25s;
 }
 
 .deck .card.open {
     cursor: default;
+    color: rgba(255, 255, 255, 1);
     background: #4148aa;
-    font-size: 60px;
     transform:  rotateY(180deg);
 }
 
 .deck .card.match {
-    animation: good .5s ease .5s;
+    animation: good 0.5s ease 0.5s;
     animation-fill-mode: forwards;
 }
 
 .deck .card.mismatch {
-    animation: bad .5s ease .75s;
+    animation: bad 0.5s ease 0.75s;
 }
 
 .deck .card.locked {
     transform: rotateY(180deg);
     cursor: default;
+    color: rgba(255, 255, 255, 1);
     background: #2a2;
-    font-size: 60px;
     box-shadow: none;
 }
 
@@ -125,6 +125,58 @@ h1 {
 .score-panel .time {
     float: right;
     margin: 0 15px 0 0;
+    font-family: monospace;
+    font-size: 20px;
+}
+
+/*
+ * Modal dialog
+ */
+
+ .modal-container {
+    opacity: 0;
+    display: flex;
+    position: absolute;
+    background: rgba(0,0,0,0.66);
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    pointer-events: none;
+    transition: all 1s;
+ }
+
+.modal-container.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-dialog {
+    background: linear-gradient(160deg, #eee 0%, #ccc 100%);
+    padding: 50px;
+    border-radius: 10px;
+    box-shadow: 12px 15px 20px 0 rgba(22, 22, 22, 0.3);
+    text-align: center;
+}
+
+.modal-dialog h1 {
+    padding: 0;
+    margin:  0 0 30px 0;
+    text-transform: uppercase;
+}
+
+.modal-button-container {
+    width: 100%;
+}
+
+.modal-button {
+    background: #2a2;
+    color: #fff;
+    font-size: 24px;
+    margin: 40px 0 0 0;
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
 }
 
 /*

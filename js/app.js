@@ -4,7 +4,7 @@
 
 //  constants
 const CARD_SYMBOLS = ["anchor", "bicycle", "bolt", "bomb", "cube", "diamond", "leaf", "paper-plane-o"];
-const STAR_FACTOR = 15;	// number of moves it takes to lower star rating
+const STAR_FACTOR = 2;	// number of moves it takes to lower star rating
 
 // variables
 let allSymbols = [];		// array of 16 symbols (8 pairs), shuffled
@@ -14,6 +14,7 @@ let lockedCards = [];		// array of the cards that have been matched
 let moveCount = 0;			// number of moves
 let gameTimer = null;		// elapsed time timer
 let startTime = null;		// time that this game started
+let timeString = "";		// elapsed time
 
 // set up shuffled deck of cards and start a new game
 initializeAllSymbols();
@@ -22,12 +23,14 @@ restartGame();
 //////////////////////////////////////////////////////////////////////////
 // event handlers
 //////////////////////////////////////////////////////////////////////////
-
 const restartBtn = document.querySelector(".restart");
 restartBtn.addEventListener('click', restartGame);
 
+const modalBtn = document.querySelector(".modal-button");
+modalBtn.addEventListener('click', restartGame);
+
 const deck = document.querySelector(".deck");
-deck.addEventListener('click', handleCardClick);
+deck.addEventListener('click', handleCardClick, true);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,7 +40,11 @@ deck.addEventListener('click', handleCardClick);
 function handleCardClick(event) {
 
 	// if the user clicked on a card...
-	const card = event.target;
+	let card = event.target;
+	if (card.nodeName === "I") {
+		card = card.parentElement;
+	}
+
 	if (card.nodeName === "LI") {	// cards are list items
 
 		// if card is already shown, do nothing
@@ -74,8 +81,10 @@ function handleCardClick(event) {
 			}
 		}
 
+
 		// if all cards have matched, end the game
-		if (lockedCards.length == allCards.length)
+		// if (lockedCards.length == allCards.length)
+		if (moveCount == 8)
 		{
 			endGame();
 		}
@@ -135,7 +144,8 @@ function lockOpenCards() {
 		card.classList.add("match");
 		lockedCards.push(card);
 	}
-	setTimeout(updateDisplay, 1500);	// delay a bit before locking matched cards
+	// delay a bit before locking matched cards
+	window.setTimeout(updateDisplay, 1500);
 }
 
 function closeOpenCards() {
@@ -143,7 +153,8 @@ function closeOpenCards() {
 		let card = openCards.pop();
 		card.classList.add("mismatch");
 	}
-	setTimeout(updateDisplay, 1500);	// delay a bit before hiding mismatched cards
+	// delay a bit before hiding mismatched cards
+	window.setTimeout(updateDisplay, 1500);
 }
 
 function incrementMoveCount() {
@@ -152,7 +163,10 @@ function incrementMoveCount() {
 }
 
 function endGame() {
-
+	window.clearInterval(gameTimer);
+	updateScorePanel();
+	const container = document.querySelector(".modal-container");
+	container.classList.add("show");
 }
 
 // 	initialize the array of symbols
@@ -182,6 +196,8 @@ function setCardIconHtml() {
 
 // restart the game: shuffle the deck and reset the cards' icon HTML
 function restartGame() {
+	const container = document.querySelector(".modal-container");
+	container.classList.remove("show");
 	moveCount = 0;
 	gameTimer = null;
 	startTime = null;
@@ -215,19 +231,27 @@ function setDisplayClass(array, className) {
 
 function updateScorePanel() {
 	// update move count
-	let moves = document.querySelector(".moves");
-	moves.textContent = moveCount.toString();
+	const moveStr = moveCount.toString() + " move" + (moveCount == 1 ? "" : "s");
+	document.querySelector(".moves").innerHTML = moveStr;
+	document.querySelector(".modal-moves").innerHTML = moveStr;
 
 	// update stars
 	const starContainer = document.querySelector('.stars');
 	const stars = starContainer.children;
-	const starCount = stars.length;
-	for (let i=0; i<starCount; i++) {
+	const len = stars.length;
+	let starCount = 0;
+	for (let i=0; i<len; i++) {
 		const star = stars[i];
 		const icon = star.querySelector("i");
-		icon.className = moveCount > STAR_FACTOR * (starCount - i) ?
-						 "fa fa-star-o" : "fa fa-star";
+		if (moveCount > STAR_FACTOR * (len - i)) {
+			icon.className = "fa fa-star-o";
+		} else {
+			icon.className = "fa fa-star";
+			starCount++;
+		}
 	}
+	const starStr = starCount.toString() + " star" + (starCount == 1 ? "" : "s");
+	document.querySelector(".modal-stars").innerHTML = starStr;
 
 	// update game timer
 	let timeStr = "0:00";
@@ -238,11 +262,11 @@ function updateScorePanel() {
 		secs = secs % 60;
 		timeStr = mins + ":" + (secs < 10 ? "0" : "" ) + secs;
 	}
-	let time = document.querySelector(".time");
-	time.innerHTML = timeStr;
+	document.querySelector(".time").innerHTML = timeStr;
+	document.querySelector(".modal-time").innerHTML = timeStr;
 }
 
-// update the display of cards
+// update the entire display
 function updateDisplay() {
 	clearDisplayClasses();
 	setDisplayClass(openCards,"open");
@@ -253,7 +277,7 @@ function updateDisplay() {
 // start the elapsed time game timer
 function startGameTimer() {
 	startTime = Date.now();
-	timer = setInterval(updateScorePanel, 1000);
+	gameTimer = window.setInterval(updateScorePanel, 1000);
 }
 
 // Shuffle function from http://stackoverflow.com/a/2450976
