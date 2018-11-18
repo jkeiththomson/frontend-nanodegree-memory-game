@@ -146,6 +146,7 @@ function incrementMoveCount() {
 function endGame() {
     // kill the elapsed time timer
     window.clearInterval(gameTimer);
+    gameTimer = null;
 
     // update the final scores
     updateScorePanel();
@@ -191,10 +192,13 @@ function restartGame() {
 
     // initialize variables
     moveCount = 0;
-    gameTimer = null;
-    startTime = null;
     openCards = [];
     lockedCards = [];
+
+    // reset timer
+    window.clearInterval(gameTimer);
+    gameTimer = null;
+    startTime = null;
 
     // shuffle the cards
     allSymbols = shuffle(allSymbols);
